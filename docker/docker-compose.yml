@@ -60,15 +60,19 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    environment:
+      - SPARK_SUBMIT_OPTS=-Divy.cache.dir=/tmp/ivy -Divy.home=/tmp/ivy
     volumes:
       - ../spark:/opt/spark-app
       - spark_data:/data
+      - spark_ivy:/tmp/ivy
     command: >
       /opt/spark/bin/spark-submit
       --master local[*]
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
       /opt/spark-app/streaming_job.py
   
-  volumes:
-    kafka_data:
-    spark_data:
+volumes:
+  kafka_data:
+  spark_data:
+  spark_ivy:
