@@ -1,0 +1,2 @@
+confluent-kafka==2.3.0
+websockets==12.0

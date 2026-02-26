@@ -18,16 +18,57 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+
+      # Kafka listens on 9092 inside Docker
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "8081:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
+  producer:
+    build:
+      context: ../producer
+    container_name: producer
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SYMBOL: avaxusdt
+      KAFKA_TOPIC: binance_avaxusdt_aggtrades
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BINANCE_WS_URL: wss://stream.binance.com:9443/ws/avaxusdt@aggTrade
+  
+  spark-minute:
+    image: apache/spark:3.5.1
+    container_name: spark-minute
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ../spark:/opt/spark-app
+      - spark_data:/data
+    command: >
+      /opt/spark/bin/spark-submit
+      --master local[*]
+      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
+      /opt/spark-app/streaming_job.py
+  
+  volumes:
+    kafka_data:
+    spark_data:
