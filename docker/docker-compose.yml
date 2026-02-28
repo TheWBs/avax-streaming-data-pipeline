@@ -57,6 +57,7 @@ services:
   spark-minute:
     image: apache/spark:3.5.1
     container_name: spark-minute
+    user: "0:0"
     depends_on:
       kafka:
         condition: service_healthy
@@ -65,7 +66,6 @@ services:
     volumes:
       - ../spark:/opt/spark-app
       - spark_data:/data
-      - spark_ivy:/tmp/ivy
     command: >
       /opt/spark/bin/spark-submit
       --master local[*]
@@ -75,4 +75,3 @@ services:
 volumes:
   kafka_data:
   spark_data:
-  spark_ivy:
