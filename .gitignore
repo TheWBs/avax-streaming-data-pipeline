@@ -1,0 +1,4 @@
+airflow/secret/*.json
+airflow/secrets/
+**/__pycache__/
+*.pyc

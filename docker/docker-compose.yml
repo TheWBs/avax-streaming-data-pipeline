@@ -1,7 +1,6 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -10,7 +9,6 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
     depends_on:
       - zookeeper
     ports:
@@ -31,7 +29,6 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
     depends_on:
       kafka:
         condition: service_healthy
@@ -44,7 +41,6 @@ services:
   producer:
     build:
       context: ../producer
-    container_name: producer
     depends_on:
       kafka:
         condition: service_healthy
@@ -56,7 +52,6 @@ services:
   
   spark-minute:
     image: apache/spark:3.5.1
-    container_name: spark-minute
     user: "0:0"
     depends_on:
       kafka:
@@ -72,6 +67,82 @@ services:
       --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
       /opt/spark-app/streaming_job.py
   
+  # --- Airflow (daily rollup -> BigQuery) ---
+  airflow-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_pgdata:/var/lib/postgresql/data
+
+  airflow-init:
+    image: apache/airflow:2.9.3
+    depends_on:
+      - airflow-postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      _PIP_ADDITIONAL_REQUIREMENTS: "pyarrow==16.1.0"
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/secrets/gcp-sa.json
+      BQ_PROJECT: crypto-project-489022
+      BQ_DATASET: crypto
+      BQ_TABLE: avax_daily
+      MINUTE_PARQUET_PATH: /data/minute
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/secret:/opt/airflow/secrets:ro
+      - spark_data:/data
+    command: >
+      bash -c "airflow db init && airflow users create --username admin --password admin --firstname admin --lastname admin --role Admin --email admin@example.com || true"
+
+  airflow-webserver:
+    image: apache/airflow:2.9.3
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      _PIP_ADDITIONAL_REQUIREMENTS: "pyarrow==16.1.0"
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/secrets/gcp-sa.json
+      BQ_PROJECT: crypto-project-489022
+      BQ_DATASET: crypto
+      BQ_TABLE: avax_daily
+      MINUTE_PARQUET_PATH: /data/minute
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/secret:/opt/airflow/secrets:ro
+      - spark_data:/data
+    command: webserver
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.3
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      _PIP_ADDITIONAL_REQUIREMENTS: "pyarrow==16.1.0"
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/secrets/gcp-sa.json
+      BQ_PROJECT: crypto-project-489022
+      BQ_DATASET: crypto
+      BQ_TABLE: avax_daily
+      MINUTE_PARQUET_PATH: /data/minute
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/secret:/opt/airflow/secrets:ro
+      - spark_data:/data
+    command: scheduler
+
 volumes:
   kafka_data:
   spark_data:
+  airflow_pgdata:

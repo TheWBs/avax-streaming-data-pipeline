@@ -1,18 +1,29 @@
 # AVAX Streaming Data Pipeline (Kafka + Spark + Airflow + BigQuery)
 
-End-to-end data engineering project that ingests live **AVAXUSDT** trade data from Binance WebSocket, streams it through **Kafka**, computes **minute-level market aggregates** with **Spark Structured Streaming**, and loads **aggregated metrics** into **BigQuery** for analytics. **Airflow** orchestrates daily rollups, data quality checks, and backfills.
+End-to-end data engineering project that ingests live **AVAXUSDT** aggTrades from Binance WebSocket, streams them through **Kafka**, computes **minute-level OHLC + volume** with **Spark Structured Streaming**, and loads **daily rollups** into **BigQuery**.
 
 ## Stack
 - Binance Spot WebSocket (`AVAXUSDT@aggTrade`)
-- Apache Kafka (stream ingestion)
-- Apache Spark Structured Streaming (minute aggregates)
-- Apache Airflow (daily rollups + DQ + backfills)
-- Google BigQuery (analytics warehouse for aggregates only)
-- Docker + Docker Compose (local reproducible environment)
+- Apache Kafka + ZooKeeper
+- Apache Spark Structured Streaming
+- Apache Airflow
+- Google BigQuery
+- Docker + Docker Compose
 
-## Output Tables (BigQuery)
-- `market_metrics_minute`
-- `market_metrics_daily`
+## BigQuery target
+- `crypto.avax_daily`
 
-## Architecture (high level)
-Binance WS → Producer → Kafka → Spark Streaming → (aggregates) → Airflow loads → BigQuery
+## High-level flow
+Binance WS -> Producer -> Kafka -> Spark minute parquet (`/data/minute`) -> Airflow daily rollup -> BigQuery `crypto.avax_daily`
+
+## Run (from repository root)
+1. Start Airflow components:
+   `docker compose up -d airflow-postgres airflow-init airflow-webserver airflow-scheduler`
+2. Start streaming components:
+   `docker compose up -d zookeeper kafka producer spark-minute`
+3. Open services:
+   - Airflow UI: `http://localhost:8080` (`admin` / `admin`)
+   - Kafka UI: `http://localhost:8081`
+
+## Credentials
+- Service account JSON is mounted from `airflow/secret/gcp-sa.json` to `/opt/airflow/secrets/gcp-sa.json` inside Airflow containers.

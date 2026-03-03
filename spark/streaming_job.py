@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col, from_json, window, min as fmin, max as fmax, sum as fsum, count as fcount,
-    first, last, to_timestamp, when
+    min_by, max_by, when
 )
 from pyspark.sql.types import StructType, StructField, StringType, LongType, BooleanType
 
@@ -71,10 +71,10 @@ agg = (
         window(col("event_ts"), "1 minute").alias("w")
     )
     .agg(
-        first("price").alias("open"),
+        min_by(col("price"), col("event_ts")).alias("open"),
         fmax("price").alias("high"),
         fmin("price").alias("low"),
-        last("price").alias("close"),
+        max_by(col("price"), col("event_ts")).alias("close"),
         fcount("*").alias("trade_count"),
         fsum("qty").alias("base_volume"),
         fsum(when(col("buyer_is_maker") == False, col("qty")).otherwise(0.0)).alias("taker_buy_base_volume"),
@@ -88,7 +88,7 @@ agg = (
         col("base_volume"),
         col("taker_buy_base_volume"),
         col("taker_sell_base_volume"),
-        (col("taker_buy_base_volume") / (col("base_volume") + col("base_volume")*0 + 1e-9)).alias("taker_buy_ratio")
+        (col("taker_buy_base_volume") / (col("base_volume") + 1e-9)).alias("taker_buy_ratio")
     )
 )
 
