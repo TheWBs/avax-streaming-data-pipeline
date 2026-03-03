@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="780" viewBox="0 0 1400 780" role="img" aria-labelledby="title desc">
+  <title id="title">AVAX Streaming Data Pipeline Architecture</title>
+  <desc id="desc">End-to-end flow from Binance WebSocket through Kafka and Spark to Airflow and BigQuery.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f6f8fb; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #17233a; }
+      .subtitle { font: 500 16px 'Segoe UI', Arial, sans-serif; fill: #3a4a66; }
+      .lane-title { font: 700 16px 'Segoe UI', Arial, sans-serif; fill: #1b2a49; }
+      .label { font: 600 15px 'Segoe UI', Arial, sans-serif; fill: #10203a; }
+      .small { font: 500 13px 'Segoe UI', Arial, sans-serif; fill: #3e4f6b; }
+      .box { fill: #ffffff; stroke: #2f6fed; stroke-width: 2; rx: 16; ry: 16; }
+      .box2 { fill: #ffffff; stroke: #00a36d; stroke-width: 2; rx: 16; ry: 16; }
+      .box3 { fill: #ffffff; stroke: #8a52ff; stroke-width: 2; rx: 16; ry: 16; }
+      .box4 { fill: #ffffff; stroke: #ff7a00; stroke-width: 2; rx: 16; ry: 16; }
+      .lane { fill: #eef3fb; stroke: #d8e2f3; stroke-width: 1; rx: 18; ry: 18; }
+      .arrow { stroke: #1f4fb4; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .arrow2 { stroke: #0a7f57; stroke-width: 3; fill: none; marker-end: url(#arrowhead2); }
+      .arrow3 { stroke: #7a42eb; stroke-width: 3; fill: none; marker-end: url(#arrowhead3); }
+      .note { fill: #fffaf2; stroke: #ffd28a; stroke-width: 1.5; rx: 12; ry: 12; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <polygon points="0 0, 10 5, 0 10" fill="#1f4fb4"/>
+    </marker>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <polygon points="0 0, 10 5, 0 10" fill="#0a7f57"/>
+    </marker>
+    <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <polygon points="0 0, 10 5, 0 10" fill="#7a42eb"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="780"/>
+  <text class="title" x="70" y="62">AVAX Streaming Data Pipeline</text>
+  <text class="subtitle" x="70" y="92">Real-time ingestion, minute aggregation, and daily analytics rollup</text>
+
+  <rect class="lane" x="60" y="130" width="1280" height="210"/>
+  <text class="lane-title" x="80" y="160">Streaming Layer (Real-Time)</text>
+
+  <rect class="box" x="90" y="185" width="220" height="120"/>
+  <text class="label" x="120" y="225">Binance WebSocket</text>
+  <text class="small" x="120" y="248">AVAXUSDT@aggTrade</text>
+  <text class="small" x="120" y="270">Source events</text>
+
+  <rect class="box" x="380" y="185" width="230" height="120"/>
+  <text class="label" x="425" y="225">Python Producer</text>
+  <text class="small" x="425" y="248">WebSocket consumer</text>
+  <text class="small" x="425" y="270">Publishes JSON to Kafka</text>
+
+  <rect class="box" x="680" y="185" width="230" height="120"/>
+  <text class="label" x="760" y="225" text-anchor="middle">Kafka</text>
+  <text class="small" x="760" y="248" text-anchor="middle">Topic: binance_avaxusdt_aggtrades</text>
+  <text class="small" x="760" y="270" text-anchor="middle">Streaming message bus</text>
+
+  <rect class="box2" x="980" y="185" width="300" height="120"/>
+  <text class="label" x="1130" y="225" text-anchor="middle">Spark Structured Streaming</text>
+  <text class="small" x="1130" y="248" text-anchor="middle">1-minute window OHLC + volume</text>
+  <text class="small" x="1130" y="270" text-anchor="middle">Watermark + append parquet sink</text>
+
+  <path class="arrow" d="M310 245 L380 245"/>
+  <path class="arrow" d="M610 245 L680 245"/>
+  <path class="arrow2" d="M910 245 L980 245"/>
+
+  <rect class="lane" x="60" y="370" width="1280" height="170"/>
+  <text class="lane-title" x="80" y="400">Storage + Orchestration Layer</text>
+
+  <rect class="box2" x="170" y="425" width="300" height="90"/>
+  <text class="label" x="320" y="458" text-anchor="middle">Shared Volume /data/minute</text>
+  <text class="small" x="320" y="481" text-anchor="middle">Minute parquet files</text>
+
+  <rect class="box3" x="560" y="425" width="320" height="90"/>
+  <text class="label" x="720" y="458" text-anchor="middle">Airflow DAG</text>
+  <text class="small" x="720" y="481" text-anchor="middle">daily_rollup_to_bq.py (0 2 * * *)</text>
+
+  <rect class="box3" x="970" y="425" width="270" height="90"/>
+  <text class="label" x="1105" y="458" text-anchor="middle">Rollup Logic</text>
+  <text class="small" x="1105" y="481" text-anchor="middle">Daily OHLC + volume aggregation</text>
+
+  <path class="arrow2" d="M1130 305 L1130 425"/>
+  <path class="arrow3" d="M470 470 L560 470"/>
+  <path class="arrow3" d="M880 470 L970 470"/>
+
+  <rect class="lane" x="60" y="570" width="1280" height="150"/>
+  <text class="lane-title" x="80" y="600">Analytics Layer</text>
+
+  <rect class="box4" x="470" y="625" width="460" height="70"/>
+  <text class="label" x="700" y="652" text-anchor="middle">Google BigQuery</text>
+  <text class="small" x="700" y="674" text-anchor="middle">Dataset: crypto | Table: avax_daily</text>
+
+  <path class="arrow3" d="M1105 515 L1105 660 L930 660"/>
+
+  <rect class="note" x="980" y="625" width="330" height="70"/>
+  <text class="small" x="1000" y="652">Used for downstream analytics, BI,</text>
+  <text class="small" x="1000" y="672">and portfolio-ready data storytelling.</text>
+</svg>
