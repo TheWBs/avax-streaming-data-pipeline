@@ -86,3 +86,8 @@ Final daily output in BigQuery:
 ## Notes
 - Daily rollup loads data into BigQuery with append strategy.
 - For environments with billing enabled, day-level overwrite/dedup logic can be enabled for stricter idempotency.
+
+---
+Thanks for reviewing this project. If you have any questions about the architecture or design decisions, feel free to reach out. — Jokūbas Griežė
+
+
