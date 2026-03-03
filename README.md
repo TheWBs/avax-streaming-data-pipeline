@@ -1,6 +1,13 @@
 # AVAX Streaming Data Pipeline
 
-End-to-end real-time data engineering project that ingests live AVAXUSDT trades, builds minute-level market aggregates, and publishes daily analytics to BigQuery.
+Real-time crypto market data pipeline built for a Data Engineering portfolio.
+The system ingests live AVAXUSDT aggTrades from Binance, transforms them into minute-level aggregates, and publishes daily analytics to BigQuery.
+
+## Why this project matters
+- Demonstrates end-to-end streaming architecture, not just batch ETL.
+- Shows practical orchestration with Airflow and production-like containerized deployment.
+- Includes data modeling for analytics-ready OHLC/volume metrics.
+- Uses cloud warehouse integration (BigQuery) for downstream BI and reporting.
 
 ## Architecture
 
