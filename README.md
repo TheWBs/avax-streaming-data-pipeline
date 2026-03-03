@@ -1,6 +1,6 @@
 # AVAX Streaming Data Pipeline
 
-Real-time crypto market data pipeline built for a Data Engineering portfolio.
+Real-time crypto market data pipeline.
 The system ingests live AVAXUSDT aggTrades from Binance, transforms them into minute-level aggregates, and publishes daily analytics to BigQuery.
 
 ## Why this project matters
